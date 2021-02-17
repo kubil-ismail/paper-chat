@@ -58,7 +58,13 @@ class App extends React.Component<Props, State> {
   }
 
   componentDidMount = () => {
-    const savedRoom = localStorage.getItem("roomId");
+    let savedRoom = localStorage.getItem("roomId");
+    const urlParams = new URLSearchParams(window.location.search);
+    const myParam = urlParams.get('code');
+    if (myParam) {
+      savedRoom = myParam;
+    }
+
     if (savedRoom) {
       this.setState({ roomId: savedRoom, validRoom: true });
       this.getChat(savedRoom);
