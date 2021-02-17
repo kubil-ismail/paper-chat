@@ -13,10 +13,12 @@ import Avatar from "@material-ui/core/Avatar";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import imageCompression from "browser-image-compression";
+import { Recorder } from "react-voice-recorder";
+import "react-voice-recorder/dist/index.css";
 
 interface State {
   chats: any;
-  roomId: null | string;
+  roomId: any | string;
   senderId: string;
   senderName: string;
   message: string;
@@ -24,12 +26,13 @@ interface State {
   fileUrl: null | string;
   errorImage: boolean;
   validRoom: boolean;
+  record: any;
 }
 
 interface Props {}
 
 class App extends React.Component<Props, State> {
-  constructor(props: State) {
+  constructor(props: Props | Readonly<Props>) {
     super(props);
     this.state = {
       chats: {},
@@ -41,6 +44,16 @@ class App extends React.Component<Props, State> {
       fileUrl: null,
       errorImage: false,
       validRoom: false,
+      record: {
+        url: "",
+        blob: null,
+        chunks: null,
+        duration: {
+          h: 0,
+          m: 0,
+          s: 0,
+        },
+      },
     };
   }
 
@@ -55,9 +68,8 @@ class App extends React.Component<Props, State> {
     }
   };
 
-  // Check room is valid
   // Get chat by room id
-  getChat = (roomId: string | null) => {
+  getChat = (roomId: string) => {
     if (roomId) {
       const connect = Firebase.database().ref(`/chats/${roomId}`).orderByKey();
       connect.on("value", (snapshot) => {
@@ -90,12 +102,14 @@ class App extends React.Component<Props, State> {
     const connect = Firebase.database().ref(`/chats`);
     connect.push({ data }).then((res) => {
       this.setState({ roomId: res.key });
-      this.getChat(res.key);
+      if (res.key) {
+        this.getChat(res.key);
+      }
     });
   };
 
   // Send new chat by room id
-  sendChat = (roomId: string | null, type: string) => {
+  sendChat = (roomId: any, type: any) => {
     if (roomId) {
       const { senderId, message, senderName, fileUrl } = this.state;
       const data = {
@@ -156,7 +170,7 @@ class App extends React.Component<Props, State> {
               .getDownloadURL()
               .then((res) => {
                 this.setState({ loadingImage: false, fileUrl: res });
-                this.sendChat(roomId, "file");
+                this.sendChat(roomId, "image");
               });
           }
         );
@@ -170,6 +184,38 @@ class App extends React.Component<Props, State> {
   clearRoom = () => {
     localStorage.setItem("roomId", "");
     this.setState({ roomId: null, validRoom: false });
+  };
+
+  // Handle on voice recording stop
+  handleAudioStop = (data: any) => {
+    this.setState({ record: data });
+  };
+
+  handleAudioUpload = (record: Blob | Uint8Array | ArrayBuffer) => {
+    const { roomId } = this.state;
+    const unique = new Date().toISOString();
+    const upload = Firebase.storage().ref(`/sounds/${unique}`).put(record);
+    upload.on(
+      "state_changed",
+      (on) => {
+        this.setState({ loadingImage: true });
+      },
+      (err) => {
+        this.setState({ loadingImage: false, errorImage: true });
+      },
+      () => {
+        // gets the functions from storage refences the image storage in firebase by the children
+            // gets the download url then sets the image from firebase as the value for the imgUrl key:
+            Firebase.storage()
+              .ref("sounds")
+              .child(unique)
+              .getDownloadURL()
+              .then((res) => {
+                this.setState({ loadingImage: false, fileUrl: res });
+                this.sendChat(roomId, "sound");
+              });
+      }
+    );
   };
 
   render() {
@@ -240,13 +286,21 @@ class App extends React.Component<Props, State> {
                             {chats[val]["name"].substring(0, 2)}
                           </Avatar>
                         </ListItemAvatar>
-                        {chats[val].type === "file" ? (
-                          <img
-                            src={chats[val].file}
-                            width="100%"
-                            height="400px"
-                            alt="sending pictures"
-                          />
+                        {chats[val].type === "image" ||
+                        chats[val].type === "sound" ? (
+                          chats[val].type === "image" ? (
+                            <img
+                              src={chats[val].file}
+                              width="100%"
+                              height="400px"
+                              alt="sending pictures"
+                            />
+                          ) : (
+                            <audio controls>
+                              <source src={chats[val].file} type="audio/wav" />
+                              Your browser does not support the audio element.
+                            </audio>
+                          )
                         ) : (
                           <ListItemText
                             primary={chats[val].name}
@@ -285,6 +339,15 @@ class App extends React.Component<Props, State> {
                   accept="image/*"
                   onChange={this.handleUpload}
                 />
+
+                <Recorder
+                  record={true}
+                  title={"New recording"}
+                  handleAudioStop={(data: any) => this.handleAudioStop(data)}
+                  handleAudioUpload={(data: any) => this.handleAudioUpload(data)}
+                  // handleRest={() => this.handleRest()}
+                />
+
                 <Button
                   variant="contained"
                   onClick={() => this.sendChat(roomId, "text")}
