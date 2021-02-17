@@ -343,8 +343,6 @@ class App extends React.Component<Props, State> {
                 <Recorder
                   record={true}
                   title={"New recording"}
-                  // audioURL={this.state.record.url}
-                  showUIAudio
                   handleAudioStop={(data: any) => this.handleAudioStop(data)}
                   handleAudioUpload={(data: any) => this.handleAudioUpload(data)}
                   // handleRest={() => this.handleRest()}
