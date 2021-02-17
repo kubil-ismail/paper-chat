@@ -23,6 +23,7 @@ interface State {
   loadingImage: boolean;
   fileUrl: null | string;
   errorImage: boolean;
+  validRoom: boolean;
 }
 
 interface Props {}
@@ -39,13 +40,14 @@ class App extends React.Component<Props, State> {
       loadingImage: false,
       fileUrl: null,
       errorImage: false,
+      validRoom: false,
     };
   }
 
   componentDidMount = () => {
     const savedRoom = localStorage.getItem("roomId");
     if (savedRoom) {
-      this.setState({ roomId: savedRoom });
+      this.setState({ roomId: savedRoom, validRoom: true });
       this.getChat(savedRoom);
     } else {
       const { roomId } = this.state;
@@ -53,6 +55,7 @@ class App extends React.Component<Props, State> {
     }
   };
 
+  // Check room is valid
   // Get chat by room id
   getChat = (roomId: string | null) => {
     if (roomId) {
@@ -60,7 +63,7 @@ class App extends React.Component<Props, State> {
       connect.on("value", (snapshot) => {
         const result = snapshot.val();
         if (result) {
-          this.setState({ chats: result.data });
+          this.setState({ chats: result.data, validRoom: true });
           localStorage.setItem("roomId", roomId);
         } else {
           console.log("no data");
@@ -166,25 +169,35 @@ class App extends React.Component<Props, State> {
   // Delete saved room id
   clearRoom = () => {
     localStorage.setItem("roomId", "");
-    this.setState({ roomId: null });
+    this.setState({ roomId: null, validRoom: false });
   };
 
   render() {
-    const { roomId, chats, errorImage, loadingImage, message } = this.state;
+    const {
+      roomId,
+      chats,
+      errorImage,
+      loadingImage,
+      message,
+      validRoom,
+    } = this.state;
     return (
       <>
         <Container>
           <Paper square>
-            {roomId && (
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => this.clearRoom()}
-              >
-                Exit
-              </Button>
+            {validRoom && (
+              <>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => this.clearRoom()}
+                >
+                  Exit
+                </Button>
+                <h1>{roomId}</h1>
+              </>
             )}
-            {!roomId && (
+            {!validRoom && (
               <>
                 <TextField
                   label="Room Id"
@@ -215,7 +228,8 @@ class App extends React.Component<Props, State> {
             )}
 
             <List>
-              {roomId && Object.keys(chats).length > 0 &&
+              {validRoom &&
+                Object.keys(chats).length > 0 &&
                 Object.keys(chats)
                   .filter((res) => res !== "greeting")
                   .map((val, key) => (
@@ -246,7 +260,7 @@ class App extends React.Component<Props, State> {
             {loadingImage && <p>lOADINGGSS.......</p>}
             {errorImage && <p>Upload errors....</p>}
           </Paper>
-          {roomId && (
+          {validRoom && (
             <AppBar position="static" color="transparent">
               <Toolbar>
                 <TextField
