@@ -16,8 +16,23 @@ import imageCompression from "browser-image-compression";
 import { Recorder } from "react-voice-recorder";
 import "react-voice-recorder/dist/index.css";
 
-class App extends React.Component {
-  constructor(props) {
+interface State {
+  chats: any;
+  roomId: any | string;
+  senderId: string;
+  senderName: string;
+  message: string;
+  loadingImage: boolean;
+  fileUrl: null | string;
+  errorImage: boolean;
+  validRoom: boolean;
+  record: any;
+}
+
+interface Props {}
+
+class App extends React.Component<Props, State> {
+  constructor(props: Props | Readonly<Props>) {
     super(props);
     this.state = {
       chats: {},
@@ -54,7 +69,7 @@ class App extends React.Component {
   };
 
   // Get chat by room id
-  getChat = (roomId) => {
+  getChat = (roomId: string) => {
     if (roomId) {
       const connect = Firebase.database().ref(`/chats/${roomId}`).orderByKey();
       connect.on("value", (snapshot) => {
@@ -87,12 +102,14 @@ class App extends React.Component {
     const connect = Firebase.database().ref(`/chats`);
     connect.push({ data }).then((res) => {
       this.setState({ roomId: res.key });
-      this.getChat(res.key);
+      if (res.key) {
+        this.getChat(res.key);
+      }
     });
   };
 
   // Send new chat by room id
-  sendChat = (roomId, type) => {
+  sendChat = (roomId: any, type: any) => {
     if (roomId) {
       const { senderId, message, senderName, fileUrl } = this.state;
       const data = {
@@ -116,7 +133,7 @@ class App extends React.Component {
   };
 
   // Handle upload file image / sound record
-  handleUpload = async (file) => {
+  handleUpload = async (file: any) => {
     const { roomId } = this.state;
     if (roomId) {
       try {
@@ -170,11 +187,11 @@ class App extends React.Component {
   };
 
   // Handle on voice recording stop
-  handleAudioStop = (data) => {
+  handleAudioStop = (data: any) => {
     this.setState({ record: data });
   };
 
-  handleAudioUpload = (record) => {
+  handleAudioUpload = (record: Blob | Uint8Array | ArrayBuffer) => {
     const { roomId } = this.state;
     const unique = new Date().toISOString();
     const upload = Firebase.storage().ref(`/sounds/${unique}`).put(record);
@@ -328,8 +345,8 @@ class App extends React.Component {
                   title={"New recording"}
                   // audioURL={this.state.record.url}
                   showUIAudio
-                  handleAudioStop={(data) => this.handleAudioStop(data)}
-                  handleAudioUpload={(data) => this.handleAudioUpload(data)}
+                  handleAudioStop={(data: any) => this.handleAudioStop(data)}
+                  handleAudioUpload={(data: any) => this.handleAudioUpload(data)}
                   // handleRest={() => this.handleRest()}
                 />
 
