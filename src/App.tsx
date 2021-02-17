@@ -23,6 +23,7 @@ interface State {
   loadingImage: boolean;
   fileUrl: null | string;
   errorImage: boolean;
+  validRoom: boolean;
 }
 
 interface Props {}
@@ -34,19 +35,27 @@ class App extends React.Component<Props, State> {
       chats: {},
       roomId: null,
       senderId: UniqueId.time(),
-      senderName: "",
+      senderName: "Unknown",
       message: "",
       loadingImage: false,
       fileUrl: null,
       errorImage: false,
+      validRoom: false,
     };
   }
 
   componentDidMount = () => {
-    const { roomId } = this.state;
-    this.getChat(roomId);
+    const savedRoom = localStorage.getItem("roomId");
+    if (savedRoom) {
+      this.setState({ roomId: savedRoom, validRoom: true });
+      this.getChat(savedRoom);
+    } else {
+      const { roomId } = this.state;
+      this.getChat(roomId);
+    }
   };
 
+  // Check room is valid
   // Get chat by room id
   getChat = (roomId: string | null) => {
     if (roomId) {
@@ -54,7 +63,8 @@ class App extends React.Component<Props, State> {
       connect.on("value", (snapshot) => {
         const result = snapshot.val();
         if (result) {
-          this.setState({ chats: result.data });
+          this.setState({ chats: result.data, validRoom: true });
+          localStorage.setItem("roomId", roomId);
         } else {
           console.log("no data");
         }
@@ -70,8 +80,7 @@ class App extends React.Component<Props, State> {
     const data = {
       greeting: {
         name: senderName,
-        avatar:
-          "https://s.gravatar.com/avatar/9a6426a03a80eefde6c1421722f1855d?size=100&default=retro",
+        avatar: "",
         message: "Yo angelo !",
         send_at: new Date().toISOString(),
         sender_id: senderId,
@@ -81,6 +90,7 @@ class App extends React.Component<Props, State> {
     const connect = Firebase.database().ref(`/chats`);
     connect.push({ data }).then((res) => {
       this.setState({ roomId: res.key });
+      this.getChat(res.key);
     });
   };
 
@@ -90,8 +100,7 @@ class App extends React.Component<Props, State> {
       const { senderId, message, senderName, fileUrl } = this.state;
       const data = {
         name: senderName,
-        avatar:
-          "https://s.gravatar.com/avatar/9a6426a03a80eefde6c1421722f1855d?size=100&default=retro",
+        avatar: "",
         message: message,
         send_at: new Date().toISOString(),
         sender_id: senderId,
@@ -104,7 +113,7 @@ class App extends React.Component<Props, State> {
         .push()
         .set(data)
         .then(() => {
-          console.log("success");
+          this.setState({ message: "" });
         });
     }
   };
@@ -157,49 +166,86 @@ class App extends React.Component<Props, State> {
     }
   };
 
+  // Delete saved room id
+  clearRoom = () => {
+    localStorage.setItem("roomId", "");
+    this.setState({ roomId: null, validRoom: false });
+  };
+
   render() {
-    const { roomId, chats, errorImage, loadingImage } = this.state;
+    const {
+      roomId,
+      chats,
+      errorImage,
+      loadingImage,
+      message,
+      validRoom,
+    } = this.state;
     return (
       <>
         <Container>
           <Paper square>
-            <TextField
-              label="Room Id"
-              variant="filled"
-              onChange={(e) => this.setState({ roomId: e.target.value })}
-            />
-            <TextField
-              label="Your Name"
-              variant="filled"
-              onChange={(e) => this.setState({ senderName: e.target.value })}
-            />
-            <Button variant="contained" onClick={() => this.getChat(roomId)}>
-              Enter
-            </Button>
-
-            <Button variant="contained" onClick={() => this.setRoom()}>
-              Create New
-            </Button>
+            {validRoom && (
+              <>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={() => this.clearRoom()}
+                >
+                  Exit
+                </Button>
+                <h1>{roomId}</h1>
+              </>
+            )}
+            {!validRoom && (
+              <>
+                <TextField
+                  label="Room Id"
+                  variant="filled"
+                  onChange={(e) => this.setState({ roomId: e.target.value })}
+                />
+                <TextField
+                  label="Your Name"
+                  variant="filled"
+                  onChange={(e) =>
+                    this.setState({ senderName: e.target.value })
+                  }
+                />
+                <Button
+                  variant="contained"
+                  onClick={() => this.getChat(roomId)}
+                >
+                  Enter
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => this.setRoom()}
+                >
+                  Create New
+                </Button>
+              </>
+            )}
 
             <List>
-              {Object.keys(chats).length > 0 &&
+              {validRoom &&
+                Object.keys(chats).length > 0 &&
                 Object.keys(chats)
                   .filter((res) => res !== "greeting")
                   .map((val, key) => (
                     <React.Fragment key={key}>
                       <ListItem button>
                         <ListItemAvatar>
-                          <Avatar
-                            alt={chats[val].name}
-                            src={chats[val].avatar}
-                          />
+                          <Avatar alt={chats[val].name} src={chats[val].avatar}>
+                            {chats[val]["name"].substring(0, 2)}
+                          </Avatar>
                         </ListItemAvatar>
                         {chats[val].type === "file" ? (
                           <img
                             src={chats[val].file}
                             width="100%"
                             height="400px"
-                            alt="sending image"
+                            alt="sending pictures"
                           />
                         ) : (
                           <ListItemText
@@ -214,27 +260,40 @@ class App extends React.Component<Props, State> {
             {loadingImage && <p>lOADINGGSS.......</p>}
             {errorImage && <p>Upload errors....</p>}
           </Paper>
-          <AppBar position="static" color="transparent">
-            <Toolbar>
-              <TextField
-                label="Message"
-                variant="filled"
-                fullWidth
-                onChange={(e) => this.setState({ message: e.target.value })}
-              />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={this.handleUpload}
-              />
-              <Button
-                variant="contained"
-                onClick={() => this.sendChat(roomId, "text")}
-              >
-                Send
-              </Button>
-            </Toolbar>
-          </AppBar>
+          {validRoom && (
+            <AppBar position="static" color="transparent">
+              <Toolbar>
+                <TextField
+                  label="Message"
+                  variant="filled"
+                  fullWidth
+                  value={message}
+                  onChange={(e) => this.setState({ message: e.target.value })}
+                  onKeyPress={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !(e.key === "Enter" && e.shiftKey)
+                    ) {
+                      e.preventDefault();
+                      this.setState({ message: "" });
+                      this.sendChat(roomId, "text");
+                    }
+                  }}
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={this.handleUpload}
+                />
+                <Button
+                  variant="contained"
+                  onClick={() => this.sendChat(roomId, "text")}
+                >
+                  Send
+                </Button>
+              </Toolbar>
+            </AppBar>
+          )}
         </Container>
       </>
     );
