@@ -37,10 +37,8 @@ export default function EnterCode({ open, handleClose }) {
       connect.on("value", (snapshot) => {
         const result = snapshot.val();
         if (result) {
-          console.log(result);
           setLoading(false);
         } else {
-          console.log("no data");
           setLoading(false);
         }
       });

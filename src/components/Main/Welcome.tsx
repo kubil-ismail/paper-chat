@@ -10,7 +10,9 @@ import {
 import ModalCode from "../Modal/EnterCode";
 import ModalCreate from '../Modal/CreateRoom';
 
-interface AppProps {}
+interface AppProps {
+  setRoom: any;
+}
 
 interface AppState {
   openModalCode: boolean;
@@ -89,6 +91,7 @@ export default class Welcome extends Component<AppProps, AppState> {
         <ModalCreate
           open={openModalCreate}
           handleClose={() => this.setState({ openModalCreate: false })}
+          setRoom={(e: any) => console.log(e)}
         />
       </div>
     );

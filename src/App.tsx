@@ -5,24 +5,34 @@ import MainChatRoom from "./components/Chat/Wrapper";
 interface AppProps {}
 
 interface AppState {
-  openModalCode: boolean;
+  validRoom: boolean;
+  roomInfo: any;
 }
 
 export default class App extends Component<AppProps, AppState> {
   constructor(props: AppState) {
     super(props);
     this.state = {
-      openModalCode: false,
+      validRoom: false,
+      roomInfo: null,
     };
   }
 
   render() {
+    const { validRoom, roomInfo } = this.state;
     return (
       <div className="app">
-        <MainWelcome />
-        {/* <div style={{ width: "80vw", overflowY: 'hidden' }}>
-          <MainChatRoom />
-        </div> */}
+        {validRoom && roomInfo ? (
+          <div style={{ width: "80vw", overflowY: "hidden" }}>
+            <MainChatRoom />
+          </div>
+        ) : (
+          <MainWelcome
+            setRoom={(e: any) =>
+              this.setState({ validRoom: e.status, roomInfo: e.data })
+            }
+          />
+        )}
       </div>
     );
   }

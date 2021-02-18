@@ -18,7 +18,7 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function EnterCode({ open, handleClose }) {
+export default function EnterCode({ open, handleClose, setRoom }) {
   const [isLoading, setLoading] = React.useState(false);
   const createRoom = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
@@ -40,6 +40,10 @@ export default function EnterCode({ open, handleClose }) {
         .push({ messages: data, room: roomName, members: 1 });
       if (connect.key) {
         setLoading(false);
+        setRoom({
+          status: true,
+          data: { room: roomName, members: 1, roomCode: connect.key },
+        });
       }
     } catch (error) {
       setLoading(false);
@@ -69,6 +73,18 @@ export default function EnterCode({ open, handleClose }) {
               <TextField
                 autoFocus
                 id="roomName"
+                name="roomName"
+                label="Room name"
+                type="text"
+                fullWidth
+                required
+                margin="dense"
+                variant="outlined"
+              />
+              <TextField
+                autoFocus
+                id="yourNames"
+                name="yourNames"
                 label="Room name"
                 type="text"
                 fullWidth
