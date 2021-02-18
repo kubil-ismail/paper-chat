@@ -107,10 +107,9 @@ export default class Welcome extends Component<AppProps, AppState> {
     });
   };
 
-  handleCloseAction = () => {
-    this.setState({
-      actionAnchor: null,
-    });
+  handleLogout = () => {
+    localStorage.setItem("roomInfo", "");
+    window.location.href = '/';
   };
 
   render() {
@@ -134,10 +133,16 @@ export default class Welcome extends Component<AppProps, AppState> {
             anchorEl={actionAnchor}
             keepMounted
             open={Boolean(actionAnchor)}
-            onClose={this.handleCloseAction}
+            onClose={() => this.setState({ actionAnchor: null })}
           >
-            <MenuItem onClick={this.handleCloseAction}>Room Info</MenuItem>
-            <MenuItem onClick={this.handleCloseAction}>Exit Room</MenuItem>
+            <MenuItem
+              onClick={() => roomId && navigator.clipboard.writeText(roomId)}
+            >
+              Copy Room Code
+            </MenuItem>
+            <MenuItem onClick={() => this.handleLogout()}>
+              Exit Room
+            </MenuItem>
           </Menu>
           <CardContent style={{ height: "70vh", overflowY: "scroll" }}>
             <Box marginY={8} marginRight={6} marginLeft={3}>
