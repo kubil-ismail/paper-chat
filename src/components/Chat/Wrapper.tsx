@@ -7,31 +7,100 @@ import {
   CardContent,
   CardActions,
   Grid,
-  Typography as Text,
   TextField,
   IconButton,
   Menu,
   MenuItem,
 } from "@material-ui/core";
-import Avatar from "@material-ui/core/Avatar";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
-
-interface AppProps {}
+import Firebase from "../../config/Firebase";
+import { Sender, Receiver } from "./ChatBox";
+interface AppProps {
+  roomInfo: any;
+}
 
 interface AppState {
   openModalCode: boolean;
   actionAnchor: any;
+  messages: any;
+  members: number;
+  senderId: number | null;
+  roomId: string | null;
+  text: string;
+  userName: string | null;
 }
 
 export default class Welcome extends Component<AppProps, AppState> {
-  constructor(props: AppState) {
+  constructor(props: AppProps) {
     super(props);
     this.state = {
       openModalCode: false,
       actionAnchor: null,
+      messages: null,
+      members: 0,
+      senderId: null,
+      roomId: null,
+      text: "",
+      userName: null,
     };
   }
 
+  componentDidMount = () => {
+    const { roomInfo } = this.props;
+    if (roomInfo) {
+      this.getChat(roomInfo.roomCode);
+    }
+  };
+
+  // Get chat by room Id
+  getChat = (roomId: string) => {
+    if (roomId) {
+      const connect = Firebase.database().ref(`/chats/${roomId}`).orderByKey();
+      connect.on("value", (snapshot) => {
+        const result = snapshot.val();
+        if (result) {
+          const { senderId, userName } = this.props.roomInfo;
+          this.setState({
+            messages: result.messages,
+            members: result.members,
+            senderId: senderId,
+            roomId: roomId,
+            userName: userName,
+          });
+          localStorage.setItem("roomInfo", JSON.stringify(this.props.roomInfo));
+        } else {
+          console.log("no data");
+        }
+      });
+    }
+  };
+
+  // Send new chat by room id
+  sendChat = (roomId: string, type: string) => {
+    console.log(roomId);
+    if (roomId) {
+      const { senderId, text, userName } = this.state;
+      const data = {
+        name: userName,
+        avatar: "",
+        message: text,
+        send_at: new Date().toISOString(),
+        sender_id: senderId,
+        timestamp: Date.now(),
+        file: "",
+        type: type,
+      };
+      const connect = Firebase.database().ref(`/chats/${roomId}/messages`);
+      connect
+        .push()
+        .set(data)
+        .then(() => {
+          this.setState({ text: "" });
+        });
+    }
+  };
+
+  // Handle on option clicked
   handleAction = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.setState({
       actionAnchor: event.currentTarget,
@@ -45,13 +114,14 @@ export default class Welcome extends Component<AppProps, AppState> {
   };
 
   render() {
-    const { actionAnchor } = this.state;
+    const { room } = this.props.roomInfo;
+    const { actionAnchor, members, messages, senderId, roomId } = this.state;
     return (
       <div>
         <Card variant="outlined">
           <CardHeader
-            title="Group title"
-            subheader="2k member"
+            title={room}
+            subheader={`${members} Members`}
             action={
               <IconButton aria-label="settings" onClick={this.handleAction}>
                 <MoreVertIcon />
@@ -70,68 +140,27 @@ export default class Welcome extends Component<AppProps, AppState> {
             <MenuItem onClick={this.handleCloseAction}>Exit Room</MenuItem>
           </Menu>
           <CardContent style={{ height: "70vh", overflowY: "scroll" }}>
-            <Box marginY={8} marginX={6}>
-              {/* Received */}
-              <Box display="flex" justifyContent="flex-end">
-                <div>
-                  <div className="box3 received received-first">
-                    <Text align="left" style={{ fontSize: "12px" }}>
-                      WOOOYYYYYY JANCCOOOOKKK
-                    </Text>
-                  </div>
-                </div>
-              </Box>
-              {[1, 2, 3, 4, 5].map((val) => (
-                <Box display="flex" justifyContent="flex-end" key={val}>
-                  <div>
-                    <div className="box3 received">
-                      <Text align="left" style={{ fontSize: "12px" }}>
-                        WOOOYYYYYY JANCCOOOOKKK
-                      </Text>
-                    </div>
-                  </div>
-                </Box>
-              ))}
-
-              {/* Sender */}
-              <Box display="flex" justifyContent="flex-start">
-                <div>
-                  <Grid container spacing={3}>
-                    <Grid item>
-                      <Avatar
-                        alt="Remy Sharp"
-                        src="/static/images/avatar/1.jpg"
-                      />
-                    </Grid>
-                    <Grid item>
-                      <div className="box3 sender sender-first">
-                        <Text
-                          align="left"
-                          style={{ fontSize: "12px", fontWeight: "bold" }}
-                        >
-                          Ismanyan
-                        </Text>
-                        <Text align="left" style={{ fontSize: "12px" }}>
-                          WOOOYYYYYY JANCCOOOOKKK APPPAASNN
-                        </Text>
-                      </div>
-                      {[1, 2, 3, 4, 5].map((val) => (
-                        <div className="box3 sender" key={val}>
-                          <Text
-                            align="left"
-                            style={{ fontSize: "12px", fontWeight: "bold" }}
-                          >
-                            Ismanyan
-                          </Text>
-                          <Text align="left" style={{ fontSize: "12px" }}>
-                            WOOOYYYYYY JANCCOOOOKKK APPPAASNN
-                          </Text>
-                        </div>
-                      ))}
-                    </Grid>
-                  </Grid>
-                </div>
-              </Box>
+            <Box marginY={8} marginRight={6} marginLeft={3}>
+              {messages &&
+                Object.keys(messages).length > 0 &&
+                Object.keys(messages)
+                  .filter((res) => res !== "greeting")
+                  .map((val, key) => (
+                    <React.Fragment key={key}>
+                      {messages[val].sender_id === senderId ? (
+                        <Receiver
+                          body={messages[val].message}
+                          time={messages[val].send_at}
+                        />
+                      ) : (
+                        <Sender
+                          name={messages[val].name}
+                          body={messages[val].message}
+                          time={messages[val].send_at}
+                        />
+                      )}
+                    </React.Fragment>
+                  ))}
             </Box>
           </CardContent>
           <CardActions style={{ borderTop: "1px solid rgba(0, 0, 0, 0.12)" }}>
@@ -141,11 +170,34 @@ export default class Welcome extends Component<AppProps, AppState> {
                   fullWidth
                   variant="filled"
                   InputProps={{ disableUnderline: true }}
+                  value={this.state.text}
                   size="small"
+                  onChange={(e) => this.setState({ text: e.target.value })}
+                  onKeyPress={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      !(e.key === "Enter" && e.shiftKey) &&
+                      roomId &&
+                      this.state.text.trim().length > 0
+                    ) {
+                      e.preventDefault();
+                      this.setState({ text: "" });
+                      this.sendChat(roomId, "text");
+                    }
+                  }}
                 />
               </Grid>
               <Grid item>
-                <Button color="primary" variant="contained">
+                <Button
+                  color="primary"
+                  variant="contained"
+                  onClick={() => {
+                    if (roomId && this.state.text.trim().length > 0) {
+                      this.setState({ text: "" });
+                      this.sendChat(roomId, "text");
+                    }
+                  }}
+                >
                   Send
                 </Button>
               </Grid>

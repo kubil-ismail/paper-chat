@@ -18,13 +18,20 @@ export default class App extends React.Component<AppProps, AppState> {
     };
   }
 
+  componentDidMount = () => {
+    const roomInfo = localStorage.getItem('roomInfo');
+    if (roomInfo) {
+      this.setState({ validRoom: true, roomInfo: JSON.parse(roomInfo) });
+    }
+  }
+
   render() {
     const { validRoom, roomInfo } = this.state;
     return (
       <div className="app">
         {validRoom && roomInfo ? (
           <div style={{ width: "80vw", overflowY: "hidden" }}>
-            <MainChatRoom />
+            <MainChatRoom roomInfo={roomInfo} />
           </div>
         ) : (
           <MainWelcome

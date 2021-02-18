@@ -12,6 +12,7 @@ import Firebase from "../../config/Firebase";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { Formik } from "formik";
 import * as Yup from "yup";
+import UniqueId from 'uniqid';
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & { children?: React.ReactElement<any, any> },
@@ -44,6 +45,7 @@ export default function EnterCode({ open, handleClose, setRoom }) {
       // Get value
       connect.on("value", (snapshot) => {
         const result = snapshot.val();
+        const senderId = UniqueId.time();
         if (result) {
           setLoading(false);
           setRoom({
@@ -53,6 +55,7 @@ export default function EnterCode({ open, handleClose, setRoom }) {
               members: result.member,
               roomCode: roomCode,
               userName: userName,
+              senderId: senderId,
             },
           });
         } else {
