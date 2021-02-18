@@ -8,23 +8,26 @@ import {
   Typography as Text,
 } from "@material-ui/core";
 import ModalCode from "../Modal/EnterCode";
+import ModalCreate from '../Modal/CreateRoom';
 
 interface AppProps {}
 
 interface AppState {
   openModalCode: boolean;
+  openModalCreate: boolean;
 }
 
 export default class Welcome extends Component<AppProps, AppState> {
-  constructor(props: AppState) {
+  constructor(props: AppProps) {
     super(props);
     this.state = {
       openModalCode: false,
+      openModalCreate: false,
     };
   }
 
   render() {
-    const { openModalCode } = this.state;
+    const { openModalCode, openModalCreate } = this.state;
     return (
       <div className="app">
         <Grid container justify="center">
@@ -50,7 +53,12 @@ export default class Welcome extends Component<AppProps, AppState> {
                   <Box marginTop={4} />
                   <Grid container justify="center" spacing={2}>
                     <Grid item>
-                      <Button variant="contained" color="primary" fullWidth>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        onClick={() => this.setState({ openModalCreate: true })}
+                      >
                         Buat room baru
                       </Button>
                     </Grid>
@@ -75,6 +83,12 @@ export default class Welcome extends Component<AppProps, AppState> {
         <ModalCode
           open={openModalCode}
           handleClose={() => this.setState({ openModalCode: false })}
+        />
+
+        {/* Show Modal create room */}
+        <ModalCreate
+          open={openModalCreate}
+          handleClose={() => this.setState({ openModalCreate: false })}
         />
       </div>
     );

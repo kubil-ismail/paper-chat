@@ -19,10 +19,10 @@ export default class App extends Component<AppProps, AppState> {
   render() {
     return (
       <div className="app">
-        {/* <MainWelcome /> */}
-        <div style={{ width: "80vw", overflowY: 'hidden' }}>
+        <MainWelcome />
+        {/* <div style={{ width: "80vw", overflowY: 'hidden' }}>
           <MainChatRoom />
-        </div>
+        </div> */}
       </div>
     );
   }
