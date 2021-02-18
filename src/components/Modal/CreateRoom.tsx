@@ -10,6 +10,8 @@ import TextField from "@material-ui/core/TextField";
 import { TransitionProps } from "@material-ui/core/transitions";
 import Firebase from "../../config/Firebase";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import { Formik } from "formik";
+import * as Yup from "yup";
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & { children?: React.ReactElement<any, any> },
@@ -18,13 +20,22 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
+const Schema = Yup.object().shape({
+  roomName: Yup.string()
+    .min(5, "Too Short!")
+    .max(20, "Too Long!")
+    .required("Required"),
+  userName: Yup.string()
+    .min(2, "Too Short!")
+    .max(14, "Too Long!")
+    .required("Required"),
+});
+
 export default function EnterCode({ open, handleClose, setRoom }) {
   const [isLoading, setLoading] = React.useState(false);
-  const createRoom = async (e: React.FormEvent<HTMLFormElement>) => {
+  const createRoom = async ({ roomName, userName }) => {
     try {
-      e.preventDefault();
       setLoading(true);
-      const roomName = e.target[0].value;
       const data = {
         greeting: {
           name: "",
@@ -42,7 +53,12 @@ export default function EnterCode({ open, handleClose, setRoom }) {
         setLoading(false);
         setRoom({
           status: true,
-          data: { room: roomName, members: 1, roomCode: connect.key },
+          data: {
+            room: roomName,
+            members: 1,
+            roomCode: connect.key,
+            userName: userName,
+          },
         });
       }
     } catch (error) {
@@ -69,51 +85,82 @@ export default function EnterCode({ open, handleClose, setRoom }) {
             <DialogContentText id="alert-dialog-slide-description">
               Lengkapi form dibawah untuk membuat room
             </DialogContentText>
-            <form onSubmit={createRoom}>
-              <TextField
-                autoFocus
-                id="roomName"
-                name="roomName"
-                label="Room name"
-                type="text"
-                fullWidth
-                required
-                margin="dense"
-                variant="outlined"
-              />
-              <TextField
-                autoFocus
-                id="yourNames"
-                name="yourNames"
-                label="Room name"
-                type="text"
-                fullWidth
-                required
-                margin="dense"
-                variant="outlined"
-              />
-              <Box marginTop={3} />
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                color="primary"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <CircularProgress
-                      color="secondary"
-                      size={15}
-                      style={{ marginRight: "10px" }}
-                    />
-                    Loading...
-                  </>
-                ) : (
-                  "Create"
-                )}
-              </Button>
-            </form>
+            <Formik
+              initialValues={{
+                roomName: "",
+                userName: "",
+              }}
+              validationSchema={Schema}
+              onSubmit={(values) => {
+                createRoom(values);
+              }}
+            >
+              {({
+                values,
+                errors,
+                touched,
+                handleChange,
+                handleBlur,
+                isValid,
+                handleSubmit,
+              }) => (
+                <form onSubmit={handleSubmit}>
+                  <TextField
+                    autoFocus
+                    id="yourNames"
+                    label="Your name"
+                    type="text"
+                    fullWidth
+                    required
+                    margin="dense"
+                    variant="outlined"
+                    name="userName"
+                    helperText={touched.userName ? errors.userName : ""}
+                    error={touched.userName && Boolean(errors.userName)}
+                    value={values.userName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  <TextField
+                    autoFocus
+                    id="roomName"
+                    label="Room name"
+                    type="text"
+                    fullWidth
+                    required
+                    margin="dense"
+                    variant="outlined"
+                    name="roomName"
+                    helperText={touched.roomName ? errors.roomName : ""}
+                    error={touched.roomName && Boolean(errors.roomName)}
+                    value={values.roomName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  <Box marginTop={3} />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    color="primary"
+                    disabled={isLoading || !isValid}
+                  >
+                    {isLoading ? (
+                      <>
+                        <CircularProgress
+                          color="secondary"
+                          size={15}
+                          style={{ marginRight: "10px" }}
+                        />
+                        Loading...
+                      </>
+                    ) : (
+                      "Create"
+                    )}
+                  </Button>
+                </form>
+              )}
+            </Formik>
           </DialogContent>
         </Box>
       </Dialog>

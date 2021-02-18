@@ -85,13 +85,14 @@ export default class Welcome extends Component<AppProps, AppState> {
         <ModalCode
           open={openModalCode}
           handleClose={() => this.setState({ openModalCode: false })}
+          setRoom={(e: any) => this.props.setRoom(e)}
         />
 
         {/* Show Modal create room */}
         <ModalCreate
           open={openModalCreate}
           handleClose={() => this.setState({ openModalCreate: false })}
-          setRoom={(e: any) => console.log(e)}
+          setRoom={(e: any) => this.props.setRoom(e)}
         />
       </div>
     );

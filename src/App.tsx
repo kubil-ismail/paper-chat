@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import MainWelcome from "./components/Main/Welcome";
 import MainChatRoom from "./components/Chat/Wrapper";
 
@@ -9,7 +9,7 @@ interface AppState {
   roomInfo: any;
 }
 
-export default class App extends Component<AppProps, AppState> {
+export default class App extends React.Component<AppProps, AppState> {
   constructor(props: AppState) {
     super(props);
     this.state = {
