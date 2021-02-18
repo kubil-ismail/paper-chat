@@ -62,7 +62,7 @@ export default class Welcome extends Component<AppProps, AppState> {
           const { senderId, userName } = this.props.roomInfo;
           this.setState({
             messages: result.messages,
-            members: result.members,
+            members: Object.keys(result.members).length,
             senderId: senderId,
             roomId: roomId,
             userName: userName,

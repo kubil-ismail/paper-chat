@@ -50,7 +50,11 @@ export default function EnterCode({ open, handleClose, setRoom }) {
       };
       const connect = await Firebase.database()
         .ref(`/chats`)
-        .push({ messages: data, room: roomName, members: 1 });
+        .push({
+          messages: data,
+          room: roomName,
+          members: { [senderId]: new Date().toISOString() },
+        });
       if (connect.key) {
         setLoading(false);
         setRoom({
