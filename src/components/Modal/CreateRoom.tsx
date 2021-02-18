@@ -111,7 +111,6 @@ export default function EnterCode({ open, handleClose, setRoom }) {
                     label="Room name"
                     type="text"
                     fullWidth
-                    required
                     margin="dense"
                     variant="outlined"
                     name="roomName"
@@ -127,7 +126,6 @@ export default function EnterCode({ open, handleClose, setRoom }) {
                     label="Your name"
                     type="text"
                     fullWidth
-                    required
                     margin="dense"
                     variant="outlined"
                     name="userName"
