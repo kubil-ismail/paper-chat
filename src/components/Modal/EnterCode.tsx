@@ -102,20 +102,6 @@ export default function EnterCode({ open, handleClose, setRoom }) {
               }) => (
                 <form onSubmit={handleSubmit}>
                   <TextField
-                    id="yourName"
-                    label="Your Name"
-                    type="text"
-                    fullWidth
-                    margin="dense"
-                    variant="outlined"
-                    name="userName"
-                    helperText={touched.userName ? errors.userName : ""}
-                    error={touched.userName && Boolean(errors.userName)}
-                    value={values.userName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <TextField
                     autoFocus
                     id="roomCode"
                     label="Room code"
@@ -127,6 +113,20 @@ export default function EnterCode({ open, handleClose, setRoom }) {
                     helperText={touched.roomCode ? errors.roomCode : ""}
                     error={touched.roomCode && Boolean(errors.roomCode)}
                     value={values.roomCode}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  <TextField
+                    id="yourName"
+                    label="Your Name"
+                    type="text"
+                    fullWidth
+                    margin="dense"
+                    variant="outlined"
+                    name="userName"
+                    helperText={touched.userName ? errors.userName : ""}
+                    error={touched.userName && Boolean(errors.userName)}
+                    value={values.userName}
                     onChange={handleChange}
                     onBlur={handleBlur}
                   />

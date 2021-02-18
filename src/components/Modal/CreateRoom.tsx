@@ -40,7 +40,7 @@ export default function EnterCode({ open, handleClose, setRoom }) {
         greeting: {
           name: "",
           avatar: "",
-          message: "Yo angelo !",
+          message: "",
           send_at: new Date().toISOString(),
           sender_id: "",
           timestamp: Date.now(),
@@ -107,22 +107,6 @@ export default function EnterCode({ open, handleClose, setRoom }) {
                 <form onSubmit={handleSubmit}>
                   <TextField
                     autoFocus
-                    id="yourNames"
-                    label="Your name"
-                    type="text"
-                    fullWidth
-                    required
-                    margin="dense"
-                    variant="outlined"
-                    name="userName"
-                    helperText={touched.userName ? errors.userName : ""}
-                    error={touched.userName && Boolean(errors.userName)}
-                    value={values.userName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <TextField
-                    autoFocus
                     id="roomName"
                     label="Room name"
                     type="text"
@@ -134,6 +118,22 @@ export default function EnterCode({ open, handleClose, setRoom }) {
                     helperText={touched.roomName ? errors.roomName : ""}
                     error={touched.roomName && Boolean(errors.roomName)}
                     value={values.roomName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  <TextField
+                    autoFocus
+                    id="yourNames"
+                    label="Your name"
+                    type="text"
+                    fullWidth
+                    required
+                    margin="dense"
+                    variant="outlined"
+                    name="userName"
+                    helperText={touched.userName ? errors.userName : ""}
+                    error={touched.userName && Boolean(errors.userName)}
+                    value={values.userName}
                     onChange={handleChange}
                     onBlur={handleBlur}
                   />
